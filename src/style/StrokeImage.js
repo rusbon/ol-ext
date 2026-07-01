@@ -5,8 +5,10 @@
 
 import ol_style_Style from "ol/style/Style.js";
 import ol_style_Icon from "ol/style/Icon.js";
+import ol_extent_Extent from "ol/extent";
 import { Coordinate as ol_coordinate_Coordinate } from "ol/coordinate.js";
 import { State as ol_render_State } from "ol/render.js";
+import { Map as ol_Map } from "ol";
 
 /**
  * @classdesc
@@ -26,12 +28,14 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
    *  @param {ol_style_Icon} options.icon Icon style to be applied to stroke
    *  @param {`#${string}`} [options.fallbackColor] Alternative stroke if segment length is less than image width
    *  @param {boolean} [options.isVectorTile] Toggle to true if applying stroke into VectorTile layer
+   *  @param {ol_Map} [options.map] Toggle to true if applying stroke into VectorTile layer
    */
   constructor(options) {
     super({ renderer: (a, b) => this.renderer(a, b) });
     this.icon = options.icon;
     this.fallbackColor = options.fallbackColor;
     this.isVectorTile = options.isVectorTile;
+    this.map = options.map;
 
     if (this.icon) this.icon.load();
   }
@@ -62,26 +66,12 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
         state.geometry.getType() == "Polygon" ? ps.length - 1 : ps.length - 1;
 
       for (let i = 0; i < pLength; i++) {
-        if (checkExtent) {
-          if (
-            (extent[0] == flatCoords[i * 2] &&
-              extent[0] == flatCoords[(i + 1) * 2]) ||
-            (extent[2] == flatCoords[i * 2] &&
-              extent[2] == flatCoords[(i + 1) * 2])
-          )
-            continue;
-
-          if (
-            (extent[1] == flatCoords[i * 2 + 1] &&
-              extent[1] == flatCoords[(i + 1) * 2 + 1]) ||
-            (extent[3] == flatCoords[i * 2 + 1] &&
-              extent[3] == flatCoords[(i + 1) * 2 + 1])
-          )
-            continue;
-        }
-
         const p1 = ps[i];
         const p2 = ps[i + 1];
+
+        if (checkExtent) {
+          if (!checkExtentIntersection(extent, p1, p2)) continue;
+        }
 
         const dx = p2[0] - p1[0];
         const dy = p2[1] - p1[1];
@@ -194,6 +184,31 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
     });
 
     return segments;
+  }
+
+  /**
+   *
+   * @param {ol_extent_Extent} Extent
+   * @param {ol_coordinate_Coordinate} p1
+   * @param {ol_coordinate_Coordinate} p2
+   */
+  checkExtentIntersection(extent, p1, p2) {
+    const pc1 = this.map.getCoordinateFromPixel(p1);
+    const pc2 = this.map.getCoordinateFromPixel(p2);
+
+    if (
+      (pc1[0] <= extent[0] && pc2[0] <= extent[0]) ||
+      (pc1[0] >= extent[2] && pc2[0] >= extent[2])
+    )
+      return false;
+
+    if (
+      (pc1[1] <= extent[1] && pc2[1] <= extent[1]) ||
+      (pc1[1] <= extent[3] && pc2[1] >= extent[3])
+    )
+      return false;
+
+    return true;
   }
 };
 
