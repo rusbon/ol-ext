@@ -19,6 +19,7 @@ import { Map as ol_Map } from "ol";
  *  @param {ol_style_Icon} options.icon Icon style to be applied to stroke
  *  @param {string} [options.fallbackColor] Alternative stroke if segment length is less than image width
  *  @param {boolean} [options.isVectorTile] Toggle to true if applying stroke into VectorTile layer
+ *  @param {ol_Map} [options.map] map instance. required if applying style to VectorTile Layer to determine point location on tile extent.
  * @extends {ol_style_Style}
  * @example
  * function getStyle(feature) {
@@ -43,7 +44,7 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
    *  @param {ol_style_Icon} options.icon Icon style to be applied to stroke
    *  @param {string} [options.fallbackColor] Alternative stroke if segment length is less than image width
    *  @param {boolean} [options.isVectorTile] Toggle to true if applying stroke into VectorTile layer
-   *  @param {ol_Map} [options.map] Toggle to true if applying stroke into VectorTile layer
+   *  @param {ol_Map} [options.map] map instance. required if applying style to VectorTile Layer to determine point location on tile extent.
    */
   constructor(options) {
     super({ renderer: (a, b) => this._renderer(a, b) });
@@ -84,7 +85,7 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
         const p1 = ps[i];
         const p2 = ps[i + 1];
 
-        if (checkExtent) {
+        if (checkExtent && !!this.map) {
           if (!checkExtentIntersection(extent, p1, p2)) continue;
         }
 
