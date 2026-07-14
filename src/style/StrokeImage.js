@@ -193,18 +193,18 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
    * @param {ol_coordinate_Coordinate} p2
    */
   checkExtentIntersection(extent, p1, p2) {
-    const pc1 = this.map.getCoordinateFromPixel(p1);
-    const pc2 = this.map.getCoordinateFromPixel(p2);
+    const px1 = this.map.getPixelFromCoordinate([extent[0], extent[1]]);
+    const px2 = this.map.getPixelFromCoordinate([extent[2], extent[3]]);
 
     if (
-      (pc1[0] <= extent[0] && pc2[0] <= extent[0]) ||
-      (pc1[0] >= extent[2] && pc2[0] >= extent[2])
+      (p1[0] <= px1[0] && p2[0] <= px1[0]) ||
+      (p1[0] >= px2[0] && p2[0] >= px2[0])
     )
       return false;
 
     if (
-      (pc1[1] <= extent[1] && pc2[1] <= extent[1]) ||
-      (pc1[1] <= extent[3] && pc2[1] >= extent[3])
+      (p1[1] >= px1[1] && p2[1] >= px1[1]) ||
+      (p1[1] <= px2[1] && p2[1] <= px2[1])
     )
       return false;
 
