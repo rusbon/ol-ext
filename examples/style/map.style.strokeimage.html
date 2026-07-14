@@ -113,7 +113,7 @@
       <ul>
         <li>
           <label>Fallback Color: </label>
-          <select id="color">
+          <select id="color" onchange="refresh()">
             <option value="">None</option>
             <option value="#c844c5" selected>purple</option>
             <option value="#d9b1ee">light-purple</option>
@@ -122,7 +122,7 @@
         </li>
         <li>
           <label>Pattern: </label>
-          <select id="pattern">
+          <select id="pattern" onchange="refresh()">
             <option value="ACHARE51" selected>Anchorage Area</option>
             <option value="ACHRES51">Anchorage Restricted Area</option>
             <option value="ADMARE01">Administrative Boundary</option>
@@ -153,6 +153,7 @@
           offset: [396, 38],
         },
       };
+      let refresh;
 
       $(window).load(function () {
         // Layers
@@ -218,6 +219,11 @@
           source: vector.getSource(),
         });
         map.addInteraction(interaction);
+
+        refresh = function() {
+          $("#pselect").hide();
+          vector.changed();
+        }
       });
     </script>
   </body>
