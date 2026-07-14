@@ -17,21 +17,36 @@ import { Map as ol_Map } from "ol";
  * @constructor
  * @param {Object} options
  *  @param {ol_style_Icon} options.icon Icon style to be applied to stroke
- *  @param {`#${string}`} [options.fallbackColor] Alternative stroke if segment length is less than image width
+ *  @param {string} [options.fallbackColor] Alternative stroke if segment length is less than image width
  *  @param {boolean} [options.isVectorTile] Toggle to true if applying stroke into VectorTile layer
  * @extends {ol_style_Style}
- * @api
+ * @example
+ * function getStyle(feature) {
+ *   return new ol.style.StrokeImage({
+ *     icon: new ol.style.Icon({
+ *       src: "../data/stroke-image-sprint.png",
+ *       size: [116, 20],
+ *       offset: [40, 40],
+ *     }),
+ *     fallbackColor: '#c844c5',
+ *   });
+ * }
+ *
+ * var vector = new ol.layer.Vector({
+ *   source: new ol.source.Vector(),
+ *   style: getStyle,
+ * });
  */
 var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
   /**
    * @param {Object} options
    *  @param {ol_style_Icon} options.icon Icon style to be applied to stroke
-   *  @param {`#${string}`} [options.fallbackColor] Alternative stroke if segment length is less than image width
+   *  @param {string} [options.fallbackColor] Alternative stroke if segment length is less than image width
    *  @param {boolean} [options.isVectorTile] Toggle to true if applying stroke into VectorTile layer
    *  @param {ol_Map} [options.map] Toggle to true if applying stroke into VectorTile layer
    */
   constructor(options) {
-    super({ renderer: (a, b) => this.renderer(a, b) });
+    super({ renderer: (a, b) => this._renderer(a, b) });
     this.icon = options.icon;
     this.fallbackColor = options.fallbackColor;
     this.isVectorTile = options.isVectorTile;
@@ -44,8 +59,9 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
    *
    * @param {ol_coordinate_Coordinate | ol_coordinate_Coordinate[] | ol_coordinate_Coordinate[][] | ol_coordinate_Coordinate[][][]} pixelCoordinates
    * @param {ol_render_State} state
+   * @private
    */
-  renderer(pixelCoordinates, state) {
+  _renderer(pixelCoordinates, state) {
     if (!["LineString", "Polygon"].includes(state.geometry.getType())) {
       return;
     }
@@ -56,7 +72,6 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
      *
      * @param {ol_coordinate_Coordinate[]} coordinates
      * @param {boolean} checkExtent
-     * @returns
      */
     const draw = (coordinates, checkExtent = false) => {
       const ps = coordinates.slice(0, 12);
@@ -82,7 +97,7 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
         const iconHeight = icon.getHeight();
         const iconOrigin = icon.getOrigin();
 
-        const segments = this.splitLineIntoSegments(p1, p2, iconWidth || 1);
+        const segments = this._splitLineIntoSegments(p1, p2, iconWidth || 1);
 
         for (let j = 0; j < segments.length; j++) {
           const { p, length } = segments[j];
@@ -140,13 +155,19 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
   }
 
   /**
-   *
+   * @typedef {Object} Segment
+   * @property {number[]} p
+   * @property {number} length
+   */
+
+  /**
    * @param {number[]} p1
    * @param {number[]} p2
    * @param {number} segmentLength
-   * @returns {{ p: [number, number]; length: number }[]}
+   * @returns {Segment[]}
+   * @private
    */
-  splitLineIntoSegments(p1, p2, segmentLength) {
+  _splitLineIntoSegments(p1, p2, segmentLength) {
     const dx = p2[0] - p1[0];
     const dy = p2[1] - p1[1];
     const totalDistance = Math.sqrt(dx * dx + dy * dy);
@@ -191,8 +212,9 @@ var ol_style_StrokeImage = class olstyleStrokeImage extends ol_style_Style {
    * @param {ol_extent_Extent} Extent
    * @param {ol_coordinate_Coordinate} p1
    * @param {ol_coordinate_Coordinate} p2
+   * @private
    */
-  checkExtentIntersection(extent, p1, p2) {
+  _checkExtentIntersection(extent, p1, p2) {
     const px1 = this.map.getPixelFromCoordinate([extent[0], extent[1]]);
     const px2 = this.map.getPixelFromCoordinate([extent[2], extent[3]]);
 
